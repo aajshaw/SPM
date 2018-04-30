@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+   <script type="text/javascript">
+      "use strict";
+      var chartDef = {};
+      google.charts.load('current', {'packages':['gauge']});
+      google.charts.setOnLoadCallback(setupCharts);
+//      $(window).load(function() {
+        //alert("Got ya!");
+//      });
+
+      function setupCharts() {
+        chartDef.formatterVolts = new google.visualization.NumberFormat({ suffix: 'V', fractionDigits: 1 });
+        chartDef.formatterPower = new google.visualization.NumberFormat({ suffix: 'kW', fractionDigits: 3});
+
+        chartDef.optionsVolts = {
+          width: 400, height: 400,
+          greenColor: 'LightBlue', greenFrom: 0, greenTo: 225,
+          redColor: 'LightGreen', redFrom: 250, redTo: 400,
+          yellowFrom:225, yellowTo: 250,
+          min: 0, max: 400,
+          minorTicks: 5
+        };
+
+        chartDef.optionPower = {
+            width: 400, height: 400,
+            min: 0, max: 3.2
+        };
+
+        chartDef.dataVoltsIn = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Input Volts', 0],
+        ]);
+        chartDef.dataVoltsOut = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Output Volts', 0],
+        ]);
+        chartDef.dataPowerOut = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Output Power', 0]
+        ]);
+
+        chartDef.chartVoltsIn = new google.visualization.Gauge(document.getElementById('chart_volts_in'));
+        chartDef.chartVoltsOut = new google.visualization.Gauge(document.getElementById('chart_volts_out'));
+        chartDef.chartPowerOut = new google.visualization.Gauge(document.getElementById('chart_power_out'));
+
+        drawCharts(chartDef);
+        updateDisplay(chartDef);
+      }
+
+      function drawCharts(chartDef) {
+        chartDef.formatterVolts.format(chartDef.dataVoltsIn, 1);
+        chartDef.chartVoltsIn.draw(chartDef.dataVoltsIn, chartDef.optionsVolts);
+        chartDef.formatterVolts.format(chartDef.dataVoltsOut, 1);
+        chartDef.chartVoltsOut.draw(chartDef.dataVoltsOut, chartDef.optionsVolts);
+        chartDef.formatterPower.format(chartDef.dataPowerOut, 1);
+        chartDef.chartPowerOut.draw(chartDef.dataPowerOut, chartDef.optionPower);
+      }
+
+      function updateDisplay(chartDef) {
+        $.get("http://localhost:8081/data", function(data, status) {
+          //alert("Well that got something");
+          //alert(status);
+//          alert("Output power " + data.outputPower);
+          chartDef.dataVoltsIn.setValue(0, 1, data.inputVoltage);
+          chartDef.dataVoltsOut.setValue(0, 1, data.outputVoltage);
+          chartDef.dataPowerOut.setValue(0, 1, data.outputPower);
+          drawCharts(chartDef);
+          setTimeout(updateDisplay, 5000, chartDef);
+        });
+      }
+
+      // function doDisplay() {
+      //   // alert("doDisplay " + window.chartDef.optionPower);
+      //   drawCharts(chartDef);
+      // }
+    </script>
+  </head>
+  <body onload="doDisplayx()">
+    <table>
+      <tr>
+        <td id="chart_volts_in" style="width: 400px; height: 400px;">
+        </td>
+        <td id="chart_volts_out" style="width: 400px; height: 400px;">
+        </td>
+        <td id="chart_power_out" style="width: 400px; height: 400px;">
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
