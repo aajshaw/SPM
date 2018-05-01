@@ -1,16 +1,29 @@
 <!doctype html>
 <html lang="en">
   <head>
+   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+   <style>
+     body { padding-top: 80px; padding-right: 80px; padding-left: 80px;}
+   </style>
+   <audio id="sound-daily-kw">
+     <source src="sounds/Blastwave_FX_CashRegister_S08IN_92.mp3" type="audio/mpeg">
+   </audio>
+   <audio id="sound-lifetime-1mW">
+     <source src="sounds/Blastwave_FX_ExplosionCrash_S08WA.132.mp3" type="audio/mpeg">
+   </audio>
+   <audio id="sound-lifetime-100kW">
+     <source src="sounds/zapsplat_emergency_alarm_siren.mp3" type="audio/mpeg">
+   </audio>
+   <audio id="sound-lifetime-10kW">
+     <source src="sounds/zapsplat_sound_design_ascending_metalic_tone_powerful_electric.mp3" type="audio/mpeg">
+   </audio>
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
    <script type="text/javascript">
       "use strict";
-      var chartDef = {};
+      var chartDef = { initialised: false };
       google.charts.load('current', {'packages':['gauge']});
       google.charts.setOnLoadCallback(setupCharts);
-//      $(window).load(function() {
-        //alert("Got ya!");
-//      });
 
       function setupCharts() {
         chartDef.formatterVolts = new google.visualization.NumberFormat({ suffix: 'V', fractionDigits: 1 });
@@ -61,25 +74,47 @@
       }
 
       function updateDisplay(chartDef) {
+        // Change localhost and port to wherever the server that is running
         $.get("http://localhost:8081/data", function(data, status) {
-          //alert("Well that got something");
-          //alert(status);
-//          alert("Output power " + data.outputPower);
           chartDef.dataVoltsIn.setValue(0, 1, data.inputVoltage);
           chartDef.dataVoltsOut.setValue(0, 1, data.outputVoltage);
           chartDef.dataPowerOut.setValue(0, 1, data.outputPower);
           drawCharts(chartDef);
+          $("#today-kwh").text(data.energyToday + "kWh");
+          $("#today-time").text(data.hoursToday + "h " + data.minutesToday + "m");
+          $('#yesterday-kwh').text(data.energyYesterday + "kWh");
+          $('#yesterday-time').text(data.hoursYesterday + "h " + data.minutesYesterday + "m");
+          $('#lifetime-kwh').text(data.energyLifetime + "kWh");
+          $('#lifetime-time').text(data.hoursLifetime + "h " + data.minutesLifetime + "m");
+          $('#average-kwh').text(data.averageDailyProduction + "kWh");
+          $('#average-days').text(data.daysProducing + " days");
+          if (chartDef.initialised) {
+            if (Math.floor(data.energyToday) > Math.floor(chartDef.energyToday)) {
+              $('#sound-daily-kw')[0].play();
+            }
+            let energy = Math.floor(data.energyLifetime);
+            if (energy % 10 == 0 && energy > Math.floor(chartDef.energyLifetime)) {
+              if (energy % 1000 == 0) {
+                $('sound-lifetime-1mW')[0].play();
+              } else if (energy % 100 == 0) {
+                $('sound-lifetime-100kW').play();
+              } else if (energy % 10 == 0) {
+                $('sound-lifetime-10kW').play();
+              }
+            }
+            chartDef.energyToday = data.energyToday;
+            chartDef.energyLifetime = data.energyLifetime;
+          } else {
+            chartDef.energyToday = data.energyToday;
+            chartDef.energyLifetime = data.energyLifetime;
+            chartDef.initialised = true;
+          }
           setTimeout(updateDisplay, 5000, chartDef);
         });
       }
-
-      // function doDisplay() {
-      //   // alert("doDisplay " + window.chartDef.optionPower);
-      //   drawCharts(chartDef);
-      // }
     </script>
   </head>
-  <body onload="doDisplayx()">
+  <body>
     <table>
       <tr>
         <td id="chart_volts_in" style="width: 400px; height: 400px;">
@@ -88,6 +123,29 @@
         </td>
         <td id="chart_power_out" style="width: 400px; height: 400px;">
         </td>
+      </tr>
+    </table>
+    <table class="table">
+      <tr>
+        <td>Today</td>
+        <td align="right" id="today-kwh">0kWh</td>
+        <td align="right" id="today-time">0h 0m</td>
+      </tr>
+      <tr>
+        <td>Yesterday</td>
+        <td align="right" id="yesterday-kwh">0kWh</td>
+        <td align="right" id="yesterday-time">0h 0m</td>
+      </tr>
+      <tr>
+        <td>Lifetime</td>
+        <td align="right" id="lifetime-kwh">0kWh</td>
+        <td align="right" id="lifetime-time">0h 0m</td>
+      </tr>
+      <tr />
+      <tr>
+        <td>Average daily production</td>
+        <td align="right" id="average-kwh">0kWh</td>
+        <td align="right" id="average-days">0 days</td>
       </tr>
     </table>
   </body>
