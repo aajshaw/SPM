@@ -64,7 +64,6 @@ module.exports = function(app) {
       });
     })
     .catch(function(error) {
-      console.log("WTF");
       data.error = error;
       data.status = 'failure';
       res.json(data);
