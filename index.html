@@ -97,9 +97,9 @@
               if (energy % 1000 == 0) {
                 $('sound-lifetime-1mW')[0].play();
               } else if (energy % 100 == 0) {
-                $('sound-lifetime-100kW').play();
+                $('sound-lifetime-100kW')[0].play();
               } else if (energy % 10 == 0) {
-                $('sound-lifetime-10kW').play();
+                $('sound-lifetime-10kW')[0].play();
               }
             }
             chartDef.energyToday = data.energyToday;
