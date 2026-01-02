@@ -4,7 +4,7 @@
   "description": "Solar Panel Monitor using Google Visualization",
   "main": "server.js",
   "dependencies": {
-    "express": "^4.21.0",
+    "express": "^4.22.1",
     "npm": "^9.2.0",
     "xml2js-parser": "^1.1.1"
   },
